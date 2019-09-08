@@ -4,7 +4,6 @@
 #include "pch.h"
 #include <iostream>
 
-int etetetrte;
 
 int main()
 {

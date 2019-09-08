@@ -25,9 +25,7 @@ int main()
 	std::cout << "Adress p, q and j: " << p << std::endl;
 	std::cout << "Adress i (i has no pointer right now) " << &i << "\nAnd value i:  " << i << "\nBut p,q,j: " << *p <<"\n\n";
 
-	char text[5];
-	std::cin >> text;
-	std::cout << text;
+	
 
 }
 
