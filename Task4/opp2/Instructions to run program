@@ -1,0 +1,12 @@
+#You will have to download dependencies (GTKMM).
+
+#I have not gotten GTKMM to work on Windows. If your OS is Windows you'll have to download Linux.
+  -I found it easiest to use a VM. Guide: https://www.lifewire.com/install-ubuntu-linux-windows-10-steps-2202108
+
+For Linux-users:
+ - Debian: sudo apt-get install libgtkmm-3.0-dev
+ - Arch: sudo pacman -S gtkmm3
+
+OS X: brew install gtkmm3
+
+Also make sure your CMakeList is correct. 
