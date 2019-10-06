@@ -1,0 +1,3 @@
+C:/Users/Ilia/Documents/Year3/C++/Task5/oppg1/cmake-build-debug/CMakeFiles/oppg1.dir
+C:/Users/Ilia/Documents/Year3/C++/Task5/oppg1/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Ilia/Documents/Year3/C++/Task5/oppg1/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -1,3 +1,4 @@
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -68,6 +69,14 @@ public:
     /// 8x8 squares occupied by 1 or 0 chess pieces
     vector<vector<unique_ptr<Piece>>> squares;
 
+    function<void(const Piece &piece, const string &from, const string &to)> on_piece_move;
+    function<void(const Piece &piece, const string &square)> on_piece_removed;
+    function<void(Color color)> on_lost_game;
+    function<void(const Piece &piece, const string &from, const string &to)> on_piece_move_invalid;
+    function<void(const string &square)> on_piece_move_missing;
+    function<void(const Piece &piece, const string &square)> after_piece_move;
+    function<void()>drawBoard;
+
     /// Move a chess piece if it is a valid move.
     /// Does not test for check or checkmate.
     bool move_piece(const std::string &from, const std::string &to) {
@@ -81,63 +90,107 @@ public:
         if (piece_from) {
             if (piece_from->valid_move(from_x, from_y, to_x, to_y)) {
 
+                if(on_piece_move){ //check to avoid "bad function call" error
+                    on_piece_move(*piece_from, from, to);
+                }
 
-
-                cout << piece_from->type() << " is moving from " << from << " to " << to << endl;
                 auto &piece_to = squares[to_x][to_y];
                 if (piece_to) {
                     if (piece_from->color != piece_to->color) {
-                        cout << piece_to->type() << " is being removed from " << to << endl;
+                        if(on_piece_removed){
+                            on_piece_removed(*piece_to, to);
+                        }
                         if (auto king = dynamic_cast<King *>(piece_to.get()))
-                            cout << king->color_string() << " lost the game" << endl;
+                            if(on_lost_game){
+                                on_lost_game(king -> color);
+                            }
                     } else {
                         // piece in the from square has the same color as the piece in the to square
-                        cout << "can not move " << piece_from->type() << " from " << from << " to " << to << endl;
+                        if(on_piece_move_invalid){
+                            on_piece_move_invalid(*piece_from, from, to);
+                        }
                         return false;
                     }
                 }
                 if(piece_from != piece_to){
                     piece_to = move(piece_from);
-                    draw();
+                    if(drawBoard){
+                        drawBoard();
+                    }
                     return true;
                 }else{
                     return false;
                 }
 
             } else {
-                cout << "can not move " << piece_from->type() << " from " << from << " to " << to << endl;
+                if(on_piece_move_invalid){
+                    on_piece_move_invalid(*piece_from, from, to);
+                }
                 return false;
             }
         } else {
-            cout << "no piece at " << from << endl;
-            return false;
-        }
-    }
-
-    /// Method to draw chessboard
-    void draw(){
-        int counter = 1;
-        char letters[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
-        cout<<"\n\n\n"; //To get under messages
-        for(int h= 0; h<size(letters); ++h)cout<<"       "<< letters[h] << "      ";
-        cout<<endl;
-        for(int i = 0; i<8; ++i){
-            cout<<counter;
-            for(int j = 0; j<8; ++j){
-                auto &piece = squares[j][i];
-                if(piece != nullptr)cout<<"| " << piece -> type();
-                else cout<<"|____________";
-
+            if(on_piece_move_missing){
+                on_piece_move_missing(from);
             }
-            cout<<"|\n";
-            ++counter;
-            cout<<endl;
+
+            return false;
         }
     }
 };
 
+class ChessBoardDraw{
+public:
+    ChessBoardDraw(ChessBoard &board){
+        board.on_piece_move = [](const ChessBoard::Piece &piece, const string &from, const string &to) {
+            cout << piece.type() << " is moving from " << from << " to " << to << endl;
+        };
+        board.on_piece_removed = [](const ChessBoard::Piece &piece, const string &square) {
+            cout << piece.type() << " is being removed from " << square << endl;
+        };
+        board.on_lost_game = [](ChessBoard::Color color){
+            if(color == ChessBoard::Color::BLACK){
+                cout<<"Black ";
+            }else{
+                cout<<"White ";
+            }
+            cout<< "won the game"<<endl;
+        };
+        board.on_piece_move_invalid = [](const ChessBoard::Piece &piece, const string &from, const string &to) {
+            cout << "can not move " << piece.type() << " from " << from << " to " << to << endl;
+        };
+        board.on_piece_move_missing = [](const string &square) {
+            cout << "no piece at " << square << endl;
+        };
+        board.after_piece_move = [](const ChessBoard::Piece &piece, const string &square) {
+            cout << piece.type() << " moved to " << square << endl;
+        };
+
+        board.drawBoard = [&board](){
+            int counter = 1;
+            char letters[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
+            cout<<"\n\n\n"; //To get under messages
+            for(int h= 0; h<size(letters); ++h)cout<<"       "<< letters[h] << "      ";
+            cout<<endl;
+            for(int i = 0; i<8; ++i){
+                cout<<counter;
+                for(int j = 0; j<8; ++j){
+                    auto &piece = board.squares[j][i];
+                    if(piece != nullptr)cout<<"| " << piece -> type();
+                    else cout<<"|____________";
+
+                }
+                cout<<"|\n";
+                ++counter;
+                cout<<endl;
+            }
+        };
+    };
+
+};
+
 int main() {
     ChessBoard board;
+    ChessBoardDraw draw(board);
 
     board.squares[4][0] = make_unique<ChessBoard::King>(ChessBoard::Color::WHITE);
     board.squares[1][0] = make_unique<ChessBoard::Knight>(ChessBoard::Color::WHITE);
@@ -167,7 +220,7 @@ int main() {
         cout<<endl;
     }
      */
-    board.draw();
+    board.drawBoard();
 
     cout << "Invalid moves:" << endl;
     board.move_piece("e3", "e2");
