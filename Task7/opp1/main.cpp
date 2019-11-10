@@ -65,7 +65,7 @@ int main() {
     e = 1333 - e; //should be 1332/1
     print("1333 - e = ", e);
 
-    
+
     //oppg b
     e = Fraction(10,1); //reset
     Fraction f(10,1);
